@@ -4,16 +4,18 @@ from openpyxl import load_workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.styles import Alignment, Font, Border, Side
 
-server = 'ABHI-PC\SQLEXPRESS'
-database = 'AzureDE_Project'
-username = 'AbhiDEProjectUserOne'
-password = 'abcd9876'
+server = 'your_Server_Address'
+database = 'your_database_name'
+username = 'user_name_of_the_database'
+password = 'your_password'
 
 conn = pyodbc.connect(f'DRIVER={{ODBC Driver 17 for SQL Server}};'
                       f'SERVER={server};DATABASE={database};'
                       f'UID={username};PWD={password}')
 
 # Function to get schema of a table
+# this function takes the table_name as the arguement and returns an object with the table schema information
+ 
 def get_table_schema(table_name):
     schema_query = f"""
     SELECT COLUMN_NAME, 
@@ -29,6 +31,7 @@ def get_table_schema(table_name):
     return pd.read_sql(schema_query, conn)
 
 # Function to get data from a table
+# if you want to work with the data as well. For the purpose of this task, we can ignore this function
 def get_table_data(table_name):
     data_query = f"SELECT * FROM {table_name}"
     return pd.read_sql(data_query, conn)
@@ -39,6 +42,7 @@ tables_df = pd.read_sql(tables_query, conn)
 table_names = tables_df['TABLE_NAME'].tolist()
 
 ## select the number of tables needed in the output
+## I am taking only first 2 tables to show this example
 table_names = table_names[:2]
 
 tables = {}
@@ -93,13 +97,13 @@ def format_sheet(sheet):
             cell.alignment = Alignment(horizontal='left', vertical='top', wrap_text=True)
 
 
-# Loop through the first 3 tables for formatting
+# Loop through the first 2 tables for formatting
 for table in table_names:
     # Access the schema and data sheets
     schema_sheet = wb[f'{table}_schema']
-    # Example: Add a custom column "test_column" to schema sheet
-    # description_col = schema_sheet.max_column + 1
-   
+
+  ## following are the examples to add the columns in the different locations along with the column name.
+  ## these columns are not a part of the schema and therefore it is added manually
     schema_sheet.insert_cols(2)
     schema_sheet.cell(row=1, column=2).value = "Description"
     
@@ -127,3 +131,5 @@ for table in table_names:
 formatted_filename = 'first_2_tables_schema_formatted_with_borders.xlsx'
 wb.save(formatted_filename)
 
+# Close the connection
+conn.close()
